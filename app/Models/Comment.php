@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -18,40 +21,64 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Post $post
+ * @property User $user
+ * @property-read Comment|null $parent
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Comment> $replies
+ * @property-read User|null $replyToUser
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $likes
  */
 
-#[Fillable(['post_id', 'user_id', 'parent_comment_id', 'reply_to_user_id', 'content', 'like_count', 'reply_count'])]
+#[Fillable(['post_id', 'user_id', 'parent_comment_id', 'reply_to_user_id', 'content'])]
 class Comment extends Model
 {
     use SoftDeletes;
 
-    public function post()
+    /**
+     * @return BelongsTo<Post, $this>
+     */
+    public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
     }
 
-    public function user()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function parent()
+    /**
+     * @return BelongsTo<Comment, $this>
+     */
+    public function parent(): BelongsTo
     {
-        return $this->belongsTo(Comment::class,'parent_comment_id');
+        return $this->belongsTo(Comment::class, 'parent_comment_id');
     }
 
-    public function replies()
+    /**
+     * @return HasMany<Comment, $this>
+     */
+    public function replies(): HasMany
     {
-        return $this->hasMany(Comment::class,'parent_comment_id')->orderBy('created_at');
+        return $this->hasMany(Comment::class, 'parent_comment_id')->orderBy('created_at');
     }
 
-    public function replyToUser()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function replyToUser(): BelongsTo
     {
-        return $this->belongsTo(User::class,'reply_to_user_id');
+        return $this->belongsTo(User::class, 'reply_to_user_id');
     }
 
-    public function likes()
+    /**
+     * @return BelongsToMany<User, $this>
+     */
+    public function likes(): BelongsToMany
     {
-        return $this->belongsToMany(User::class,'comment_likes')->withTimestamps();
+        return $this->belongsToMany(User::class, 'comment_likes')->withTimestamps();
     }
 }
