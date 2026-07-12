@@ -1,7 +1,7 @@
 <?php
 
 test('returns a successful response', function () {
-    $response = $this->get(route('home'));
+    $response = $this->get(route('feed'));
 
-    $response->assertOk();
+    $response->assertRedirect(route('login'));
 });

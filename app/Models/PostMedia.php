@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -14,11 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $width
  * @property int|null $height
  * @property int $position
- * @property \Illuminate\Support\Carbon|null $created_at
+ * @property Carbon|null $created_at
  * @property Post $post
  */
-
-#[Fillable(['post_id', 'file_path', 'media_type', 'width', 'height', 'position'])]
+#[Fillable(['post_id', 'file_path', 'media_type', 'width', 'height', 'position', 'mime_type', 'file_size', 'duration'])]
 class PostMedia extends Model
 {
     public $timestamps = false;

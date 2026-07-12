@@ -2,20 +2,30 @@ import { createInertiaApp } from '@inertiajs/react';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AuthLayout from '@/layouts/auth-layout';
 import AppLayout from './layouts/app-layout';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Buddy Script';
 
+window.Pusher = Pusher;
+
+if (!window.Echo) {
+    window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: import.meta.env.VITE_PUSHER_APP_KEY,
+        cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+        forceTLS: true,
+    });
+}
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {
         switch (true) {
-            case name === 'welcome':
-                return AppLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             default:
-                return null;
+                return AppLayout;
         }
     },
     strictMode: true,
