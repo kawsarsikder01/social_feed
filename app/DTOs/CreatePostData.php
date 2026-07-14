@@ -3,9 +3,14 @@
 namespace App\DTOs;
 
 use App\Enums\PostVisibility;
+use Illuminate\Http\UploadedFile;
 
 final class CreatePostData
 {
+    /**
+     * @param  array<int, UploadedFile>  $images
+     * @param  array<int, UploadedFile>  $videos
+     */
     public function __construct(
         public readonly int $userId,
         public readonly ?string $content,
@@ -14,6 +19,9 @@ final class CreatePostData
         public readonly array $videos = [],
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public static function fromRequest(array $data, int $userId): self
     {
         return new self(

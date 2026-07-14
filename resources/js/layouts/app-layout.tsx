@@ -784,7 +784,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                                     <a className="_right_inner_area_info_content_txt_link" href="#0">See All</a>
                                                 </span>
                                             </div>
-                                            <hr className="_underline" />/
+                                            <hr className="_underline" />
                                             <div className="_right_inner_area_info_ppl">
                                                 <div className="_right_inner_area_info_box">
                                                     <div className="_right_inner_area_info_box_image">

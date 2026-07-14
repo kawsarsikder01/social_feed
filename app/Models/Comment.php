@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $reply_to_user_id
  * @property string $content
  * @property int $like_count
- * @property int $comment_count
+ * @property int $reply_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -34,6 +35,7 @@ use Illuminate\Support\Carbon;
 #[Fillable(['post_id', 'user_id', 'parent_comment_id', 'reply_to_user_id', 'content'])]
 class Comment extends Model
 {
+    /** @use HasFactory<CommentFactory> */
     use HasFactory, SoftDeletes;
 
     /**

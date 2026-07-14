@@ -11,7 +11,7 @@ class DeletePostAction
     {
         foreach ($post->media as $media) {
             $disk = Storage::disk('public');
-            $path = str_replace('/storage/', '', $media->file_path);
+            $path = ltrim($media->file_path, '/storage/');
             if ($disk->exists($path)) {
                 $disk->delete($path);
             }

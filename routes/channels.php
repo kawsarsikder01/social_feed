@@ -1,16 +1,17 @@
 <?php
 
+use App\Enums\PostVisibility;
 use App\Models\Post;
 use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('post.{postId}', function ($user, int $postId) {
-    $post = Post::with('user')->find($postId);
+    $post = Post::find($postId);
 
     if (! $post) {
         return false;
     }
 
-    if ($post->visibility === 'public') {
+    if ($post->visibility === PostVisibility::PUBLIC) {
         return true;
     }
 

@@ -14,17 +14,23 @@ class DeleteCommentAction
     public function execute(Comment $comment): array
     {
         $result = DB::transaction(function () use ($comment) {
-            $post = $comment->post()->lockForUpdate()->firstOrFail();
+            $post = $comment->post()
+                ->lockForUpdate()
+                ->firstOrFail();
 
+            // Fetch the comment and its direct replies.
+            // This is sufficient because the application only supports one reply level.
             $comments = Comment::query()
                 ->whereKey($comment->id)
                 ->orWhere('parent_comment_id', $comment->id)
                 ->lockForUpdate()
                 ->get(['id']);
 
-            $deletedCommentIds = $comments->modelKeys();
+            $deletedCommentIds = array_values(array_map('intval', $comments->modelKeys()));
 
-            Comment::query()->whereKey($deletedCommentIds)->delete();
+            Comment::query()
+                ->whereKey($deletedCommentIds)
+                ->delete();
 
             $post->decrement('comment_count', count($deletedCommentIds));
 
@@ -40,7 +46,11 @@ class DeleteCommentAction
             ];
         });
 
-        event(new CommentDeleted($comment, $result['deleted_comment_ids'], $result['post_comment_count']));
+        event(new CommentDeleted(
+            $comment,
+            $result['deleted_comment_ids'],
+            $result['post_comment_count']
+        ));
 
         return $result;
     }

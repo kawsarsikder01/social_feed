@@ -2,10 +2,12 @@
 
 namespace App\Listeners;
 
+use App\Enums\PostVisibility;
 use App\Events\PostCreated;
 use App\Models\User;
 use App\Notifications\NewPostNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Notification;
 
 class SendPostNotification implements ShouldQueue
 {
@@ -13,17 +15,16 @@ class SendPostNotification implements ShouldQueue
     {
         $post = $event->post;
 
-        if ($post->visibility !== 'public') {
+        if ($post->visibility !== PostVisibility::PUBLIC) {
             return;
         }
 
-        $followers = User::where('id', '!=', $post->user_id)
-            ->where('status', 'active')
-            ->limit(100)
-            ->get();
+        $author = User::query()->find($post->user_id);
 
-        foreach ($followers as $follower) {
-            $follower->notify(new NewPostNotification($post));
+        if ($author === null) {
+            return;
         }
+
+        Notification::send($author, new NewPostNotification($post));
     }
 }

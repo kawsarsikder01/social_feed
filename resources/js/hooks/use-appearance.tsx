@@ -69,6 +69,8 @@ const mediaQuery = (): MediaQueryList | null => {
 
 const handleSystemThemeChange = (): void => applyTheme(currentAppearance);
 
+let mediaQueryListenerAttached = false;
+
 export function initializeTheme(): void {
     if (typeof window === 'undefined') {
         return;
@@ -82,8 +84,11 @@ export function initializeTheme(): void {
     currentAppearance = getStoredAppearance();
     applyTheme(currentAppearance);
 
-    // Set up system theme change listener
-    mediaQuery()?.addEventListener('change', handleSystemThemeChange);
+    // Set up system theme change listener (only once)
+    if (!mediaQueryListenerAttached) {
+        mediaQuery()?.addEventListener('change', handleSystemThemeChange);
+        mediaQueryListenerAttached = true;
+    }
 }
 
 export function useAppearance(): UseAppearanceReturn {

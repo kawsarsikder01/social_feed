@@ -1,7 +1,11 @@
 <?php
 
+use App\Events\PostCreated;
+use App\Listeners\SendPostNotification;
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\NewPostNotification;
+use Illuminate\Support\Facades\Notification;
 
 uses()->group('posts');
 
@@ -97,6 +101,21 @@ it('cannot delete other users post', function () {
     $response = $this->deleteJson("/posts/{$post->public_id}");
 
     $response->assertStatus(403);
+});
+
+it('sends a notification only to the post owner for public posts', function () {
+    Notification::fake();
+
+    $author = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create([
+        'user_id' => $author->id,
+        'visibility' => 'public',
+    ]);
+
+    $listener = new SendPostNotification;
+    $listener->handle(new PostCreated($post));
+
+    Notification::assertSentTo($author, NewPostNotification::class);
 });
 
 it('can toggle like on post', function () {

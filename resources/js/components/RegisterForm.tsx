@@ -1,8 +1,7 @@
 
-import FormInput from "./FormInput";
-import RememberForgotRow from "./RememberForgotRow";
-import { store } from '@/routes/register';
 import { Form } from "@inertiajs/react";
+import { store } from '@/routes/register';
+import FormInput from "./FormInput";
 
 export default function RegisterForm() {
     return (
@@ -20,7 +19,7 @@ export default function RegisterForm() {
                                 name="first_name"
                                 label="First Name"
                                 type="text"
-                                autoComplete="first_name"
+                                autoComplete="given-name"
                                 required
                             />
 
@@ -35,7 +34,7 @@ export default function RegisterForm() {
                                 name="last_name"
                                 label="Last Name"
                                 type="text"
-                                autoComplete="last_name"
+                                autoComplete="family-name"
                                 required
                             />
 
@@ -65,7 +64,7 @@ export default function RegisterForm() {
                                 name="password"
                                 label="Password"
                                 type="password"
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 required
                             />
 
@@ -89,8 +88,6 @@ export default function RegisterForm() {
                         </div>
                     </div>
 
-                    <RememberForgotRow />
-
                     <div className="row">
                         <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
                             <div className="_social_registration_form_btn _mar_t40 _mar_b60">
@@ -99,7 +96,7 @@ export default function RegisterForm() {
                                     className="_social_registration_form_btn_link _btn1"
                                     disabled={processing}
                                 >
-                                    {processing ? "Registering..." : "Regsiter"}
+                                    {processing ? "Registering..." : "Register"}
                                 </button>
                             </div>
                         </div>

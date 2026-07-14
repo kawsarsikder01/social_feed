@@ -11,6 +11,9 @@ class CommentService
 {
     private const PER_PAGE = 20;
 
+    /**
+     * @return CursorPaginator<int, Comment>
+     */
     public function getTopLevelComments(Post $post, int $userId): CursorPaginator
     {
         return $this->baseQuery($userId)
@@ -21,6 +24,9 @@ class CommentService
             ->cursorPaginate(self::PER_PAGE);
     }
 
+    /**
+     * @return CursorPaginator<int, Comment>
+     */
     public function getReplies(Comment $comment, int $userId): CursorPaginator
     {
         return $this->baseQuery($userId)

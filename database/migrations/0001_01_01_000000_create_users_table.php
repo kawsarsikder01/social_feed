@@ -36,28 +36,28 @@ return new class extends Migration
             $table->unique('public_id');
         });
 
-         # Convert email to CITEXT
-        DB::statement("
+        // Convert email to CITEXT
+        DB::statement('
             ALTER TABLE users
             ALTER COLUMN email TYPE CITEXT
-        ");
+        ');
 
-         # Partial unique index for soft deletes
-        DB::statement("
+        // Partial unique index for soft deletes
+        DB::statement('
             CREATE UNIQUE INDEX users_email_unique
             ON users(email)
             WHERE deleted_at IS NULL
-        ");
+        ');
 
-        # Optional database validation
-        DB::statement("
+        // Optional database validation
+        DB::statement('
             ALTER TABLE users
             ADD CONSTRAINT users_name_len
             CHECK (
                 char_length(first_name) > 0
                 AND char_length(last_name) > 0
             )
-        ");
+        ');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -80,13 +80,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('DROP EXTENSION IF EXISTS citext');
-        DB::statement('DROP EXTENSION IF EXISTS pgcrypto');
-        DB::statement('DROP TYPE IF EXISTS media_type_enum');
-        DB::statement('DROP TYPE IF EXISTS post_visibility');
-        DB::statement('DROP TYPE IF EXISTS user_status');
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };

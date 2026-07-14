@@ -1,14 +1,14 @@
 import { usePage, router } from '@inertiajs/react';
+import { useState, useEffect, useCallback } from 'react';
+import { index as commentIndex } from '@/actions/App/Http/Controllers/CommentController';
+import { destroy as destroyPost, toggleLike as togglePostLike } from '@/actions/App/Http/Controllers/PostController';
+import { timeAgo } from '@/types';
+import type { User } from '@/types/auth';
 import Avatar from './Avatar';
 import CommentForm from './CommentForm';
 import CommentItem from './CommentItem';
-import { timeAgo } from '@/types';
-import { useState, useEffect, useCallback } from 'react';
-import type { User } from '@/types/auth';
 import type { PostData, Comment, ApiResponse, CursorPaginated } from './Post/types';
 import { getJsonHeaders } from './Post/utils';
-import { destroy as destroyPost, toggleLike as togglePostLike } from '@/actions/App/Http/Controllers/PostController';
-import { index as commentIndex } from '@/actions/App/Http/Controllers/CommentController';
 
 interface PostProps {
     post: PostData;
@@ -33,7 +33,9 @@ export default function Post({ post }: PostProps) {
     const addComment = useCallback((comment: Comment, postCommentCount: number, parentReplyCount: number | null) => {
         setCommentCount(postCommentCount);
 
-        if (!commentsLoaded && !showComments) return;
+        if (!commentsLoaded && !showComments) {
+return;
+}
 
         setComments(prev => {
             if (comment.parent_comment_id) {
@@ -64,7 +66,9 @@ export default function Post({ post }: PostProps) {
     }, []);
 
     useEffect(() => {
-        if (!window.Echo) return;
+        if (!window.Echo) {
+return;
+}
 
         const channel = window.Echo.private(`post.${post.id}`);
 
@@ -78,6 +82,7 @@ export default function Post({ post }: PostProps) {
 
         channel.listen('.PostLiked', (e: { like_count: number; liked_by_user_id: number }) => {
             setLikeCount(e.like_count);
+
             if (e.liked_by_user_id === currentUserId) {
                 setLiked(true);
             }
@@ -93,6 +98,7 @@ export default function Post({ post }: PostProps) {
                             liked_by_user: e.liked_by_user_id === currentUserId ? e.liked : c.liked_by_user,
                         };
                     }
+
                     return c;
                 })
             );
@@ -104,7 +110,9 @@ export default function Post({ post }: PostProps) {
     }, [post.id, currentUserId, addComment, removeComment]);
 
     const handleLike = async () => {
-        if (processing) return;
+        if (processing) {
+return;
+}
 
         const prevLiked = liked;
         const prevLikeCount = likeCount;
@@ -135,7 +143,10 @@ export default function Post({ post }: PostProps) {
 
     const handleDelete = async () => {
         setDropdownOpen(false);
-        if (!confirm('Delete this post?')) return;
+
+        if (!confirm('Delete this post?')) {
+return;
+}
 
         try {
             const response = await fetch(destroyPost.url(post.public_id), {
@@ -154,7 +165,9 @@ export default function Post({ post }: PostProps) {
     };
 
     const loadComments = async (cursor: string | null = null) => {
-        if (commentsLoading) return;
+        if (commentsLoading) {
+return;
+}
 
         setCommentsLoading(true);
 
@@ -163,7 +176,9 @@ export default function Post({ post }: PostProps) {
                 query: cursor ? { cursor } : {},
             }));
 
-            if (!response.ok) return;
+            if (!response.ok) {
+return;
+}
 
             const page: CursorPaginated<Comment> = await response.json();
             setComments(previous => {

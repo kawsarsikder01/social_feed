@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 
 /**
@@ -32,12 +33,12 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Comment> $likedComments
  */
 #[Appends(['name'])]
-#[Fillable(['public_id', 'first_name', 'last_name', 'email', 'avatar', 'status', 'password'])]
+#[Fillable(['first_name', 'last_name', 'email', 'avatar', 'status', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.

@@ -12,6 +12,9 @@ use Illuminate\Support\Carbon;
  * @property int $post_id
  * @property string $file_path
  * @property string $media_type
+ * @property string $mime_type
+ * @property int $file_size
+ * @property int|null $duration
  * @property int|null $width
  * @property int|null $height
  * @property int $position

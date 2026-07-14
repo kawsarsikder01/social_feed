@@ -29,9 +29,17 @@ class CommentCreated implements ShouldBroadcast
         return 'CommentCreated';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         $this->comment->loadMissing(['user', 'replyToUser']);
+
+        $postCommentCount = $this->comment->post()->value('comment_count');
+        $parentReplyCount = $this->comment->parent_comment_id === null
+            ? null
+            : $this->comment->parent()->value('reply_count');
 
         return [
             'comment' => [
@@ -43,7 +51,6 @@ class CommentCreated implements ShouldBroadcast
                     'first_name' => $this->comment->user->first_name,
                     'last_name' => $this->comment->user->last_name,
                     'name' => $this->comment->user->name,
-                    'email' => $this->comment->user->email,
                     'avatar' => $this->comment->user->avatar,
                 ],
                 'reply_to_user' => $this->comment->replyToUser ? [
@@ -52,7 +59,6 @@ class CommentCreated implements ShouldBroadcast
                     'first_name' => $this->comment->replyToUser->first_name,
                     'last_name' => $this->comment->replyToUser->last_name,
                     'name' => $this->comment->replyToUser->name,
-                    'email' => $this->comment->replyToUser->email,
                     'avatar' => $this->comment->replyToUser->avatar,
                 ] : null,
                 'like_count' => $this->comment->like_count,
@@ -61,10 +67,8 @@ class CommentCreated implements ShouldBroadcast
                 'parent_comment_id' => $this->comment->parent_comment_id,
                 'created_at' => $this->comment->created_at->toISOString(),
             ],
-            'post_comment_count' => $this->comment->post()->value('comment_count'),
-            'parent_reply_count' => $this->comment->parent_comment_id === null
-                ? null
-                : $this->comment->parent()->value('reply_count'),
+            'post_comment_count' => $postCommentCount,
+            'parent_reply_count' => $parentReplyCount,
         ];
     }
 }

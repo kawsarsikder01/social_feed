@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import CommentForm from './CommentForm';
-import ReplyItem from './ReplyItem';
-import Avatar from './Avatar';
+import { useState } from 'react';
+import { destroy, replies, toggleLike } from '@/actions/App/Http/Controllers/CommentController';
 import { timeAgo } from '@/types';
+import Avatar from './Avatar';
+import CommentForm from './CommentForm';
 import type { Comment, Reply, ApiResponse, CursorPaginated } from './Post/types';
 import { getJsonHeaders } from './Post/utils';
-import { destroy, replies, toggleLike } from '@/actions/App/Http/Controllers/CommentController';
+import ReplyItem from './ReplyItem';
 
 interface CommentItemProps {
     comment: Comment;
@@ -26,18 +26,12 @@ export default function CommentItem({ comment, postPublicId, currentUserId, onCo
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [loadingReplies, setLoadingReplies] = useState(false);
 
-    useEffect(() => {
-        setLikeCount(comment.like_count);
-    }, [comment.like_count]);
-
-    useEffect(() => {
-        setLiked(comment.liked_by_user);
-    }, [comment.liked_by_user]);
-
     const isOwner = comment.user?.id === currentUserId;
 
     const handleLike = async () => {
-        if (processing) return;
+        if (processing) {
+return;
+}
 
         const prevLiked = liked;
         const prevLikeCount = likeCount;
@@ -76,7 +70,9 @@ export default function CommentItem({ comment, postPublicId, currentUserId, onCo
     };
 
     const handleDelete = async () => {
-        if (!confirm('Delete this comment?')) return;
+        if (!confirm('Delete this comment?')) {
+return;
+}
 
         try {
             const response = await fetch(destroy.url(comment.id), {
@@ -95,7 +91,9 @@ export default function CommentItem({ comment, postPublicId, currentUserId, onCo
     };
 
     const loadReplies = async (cursor: string | null = null) => {
-        if (loadingReplies) return;
+        if (loadingReplies) {
+return;
+}
 
         setLoadingReplies(true);
 
@@ -104,7 +102,9 @@ export default function CommentItem({ comment, postPublicId, currentUserId, onCo
                 query: cursor ? { cursor } : {},
             }));
 
-            if (!response.ok) return;
+            if (!response.ok) {
+return;
+}
 
             const page: CursorPaginated<Reply> = await response.json();
             setRepliesList(previous => {
@@ -221,7 +221,7 @@ export default function CommentItem({ comment, postPublicId, currentUserId, onCo
                     )}
 
                     {showReplies && repliesList.map((reply) => (
-                        <ReplyItem key={reply.id} reply={reply} currentUserId={currentUserId} onLikeChanged={handleReplyLikeChanged} />
+                        <ReplyItem key={reply.id} reply={reply} onLikeChanged={handleReplyLikeChanged} />
                     ))}
                     {showReplies && nextCursor && (
                         <button

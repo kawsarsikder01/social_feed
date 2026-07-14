@@ -1,10 +1,10 @@
 import { usePage } from '@inertiajs/react';
-import Avatar from './Avatar';
-import type { User } from '@/types/auth';
 import { useState } from 'react';
+import { store as storeComment } from '@/actions/App/Http/Controllers/CommentController';
+import type { User } from '@/types/auth';
+import Avatar from './Avatar';
 import type { Comment, ApiResponse } from './Post/types';
 import { getJsonHeaders } from './Post/utils';
-import { store as storeComment } from '@/actions/App/Http/Controllers/CommentController';
 
 interface CommentFormProps {
     postPublicId: string;
@@ -16,14 +16,16 @@ export default function CommentForm({ postPublicId, parentCommentId, onCommentAd
     const { auth } = usePage<{ auth: { user: User } }>().props;
     const [error, setError] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
+    const [content, setContent] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const form = e.target as HTMLFormElement;
-        const textarea = form.querySelector('textarea') as HTMLTextAreaElement;
-        const content = textarea.value.trim();
 
-        if (!content) return;
+        const trimmed = content.trim();
+
+        if (!trimmed) {
+return;
+}
 
         setProcessing(true);
         setError(null);
@@ -33,7 +35,7 @@ export default function CommentForm({ postPublicId, parentCommentId, onCommentAd
                 method: 'POST',
                 headers: getJsonHeaders(),
                 body: JSON.stringify({
-                    content,
+                    content: trimmed,
                     parent_comment_id: parentCommentId ?? null,
                 }),
             });
@@ -47,10 +49,12 @@ export default function CommentForm({ postPublicId, parentCommentId, onCommentAd
                 } else {
                     setError(data.message || 'Failed to add comment. Please try again.');
                 }
+
                 return;
             }
 
-            textarea.value = '';
+            setContent('');
+
             if (onCommentAdded && data.comment && data.post_comment_count !== undefined) {
                 onCommentAdded(data.comment, data.post_comment_count, data.parent_reply_count ?? null);
             }
@@ -73,6 +77,8 @@ export default function CommentForm({ postPublicId, parentCommentId, onCommentAd
                             className="form-control _comment_textarea"
                             placeholder={parentCommentId ? 'Write a reply...' : 'Write a comment...'}
                             name="content"
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();

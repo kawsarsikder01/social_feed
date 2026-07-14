@@ -1,31 +1,24 @@
-import { useState, useEffect } from 'react';
-import Avatar from './Avatar';
-import { getJsonHeaders } from './Post/utils';
-import type { Reply, ApiResponse } from './Post/types';
-import { timeAgo } from '@/types';
+import { useState } from 'react';
 import { toggleLike } from '@/actions/App/Http/Controllers/CommentController';
+import { timeAgo } from '@/types';
+import Avatar from './Avatar';
+import type { Reply, ApiResponse } from './Post/types';
+import { getJsonHeaders } from './Post/utils';
 
 interface ReplyItemProps {
     reply: Reply;
-    currentUserId: number;
     onLikeChanged?: (replyId: number, liked: boolean, likeCount: number) => void;
 }
 
-export default function ReplyItem({ reply, currentUserId, onLikeChanged }: ReplyItemProps) {
+export default function ReplyItem({ reply, onLikeChanged }: ReplyItemProps) {
     const [liked, setLiked] = useState(reply.liked_by_user);
     const [likeCount, setLikeCount] = useState(reply.like_count);
     const [processing, setProcessing] = useState(false);
 
-    useEffect(() => {
-        setLikeCount(reply.like_count);
-    }, [reply.like_count]);
-
-    useEffect(() => {
-        setLiked(reply.liked_by_user);
-    }, [reply.liked_by_user]);
-
     const handleLike = async () => {
-        if (processing) return;
+        if (processing) {
+return;
+}
 
         const prevLiked = liked;
         const prevLikeCount = likeCount;

@@ -40,11 +40,13 @@ class CreateCommentAction
             return $comment;
         });
 
-        event(new CommentCreated($comment));
-
-        return $comment->load([
+        $comment->load([
             'user:id,public_id,first_name,last_name,avatar',
             'replyToUser:id,public_id,first_name,last_name,avatar',
         ]);
+
+        event(new CommentCreated($comment));
+
+        return $comment;
     }
 }

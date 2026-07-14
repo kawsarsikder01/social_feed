@@ -11,6 +11,9 @@ final class CreateCommentData
         public readonly ?int $parentCommentId = null,
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public static function fromRequest(array $data, int $userId, int $postId): self
     {
         return new self(

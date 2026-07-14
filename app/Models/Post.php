@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PostVisibility;
+use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,9 +30,10 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Comment> $comments
  * @property-read Collection<int, User> $likes
  */
-#[Fillable(['public_id', 'user_id', 'content', 'visibility', 'like_count', 'comment_count'])]
+#[Fillable(['user_id', 'content', 'visibility'])]
 class Post extends Model
 {
+    /** @use HasFactory<PostFactory> */
     use HasFactory, SoftDeletes;
 
     protected function casts(): array
@@ -44,6 +46,15 @@ class Post extends Model
     public function getRouteKeyName(): string
     {
         return 'public_id';
+    }
+
+    public function isVisibleToUser(?User $user): bool
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        return $this->visibility === PostVisibility::PUBLIC || $this->user_id === $user->id;
     }
 
     /**

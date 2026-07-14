@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 const shimmerKeyframes = `
 @keyframes shimmer {
   0% { background-position: -400px 0; }
@@ -12,7 +14,7 @@ const shimmerStyle = {
     borderRadius: 4,
 };
 
-function SkeletonBlock({ width, height, style }: { width?: string | number; height?: string | number; style?: React.CSSProperties }) {
+function SkeletonBlock({ width, height, style }: { width?: string | number; height?: string | number; style?: CSSProperties }) {
     return (
         <div
             style={{

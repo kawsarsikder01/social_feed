@@ -34,17 +34,17 @@ return new class extends Migration
             $table->unique('public_id');
         });
 
-        # PostgreSQL CHECK constraint
-        DB::statement("
+        // PostgreSQL CHECK constraint
+        DB::statement('
             ALTER TABLE posts
             ADD CONSTRAINT posts_content_len
             CHECK (
                 content IS NULL
                 OR char_length(content) <= 10000
             )
-        ");
+        ');
 
-        # Partial index for public feed
+        // Partial index for public feed
         DB::statement("
             CREATE INDEX posts_public_feed_idx
             ON posts (created_at DESC, id DESC)
@@ -52,12 +52,12 @@ return new class extends Migration
             AND deleted_at IS NULL
         ");
 
-        # Partial index for user's posts
-        DB::statement("
+        // Partial index for user's posts
+        DB::statement('
             CREATE INDEX posts_user_idx
             ON posts (user_id, created_at DESC)
             WHERE deleted_at IS NULL
-        ");
+        ');
     }
 
     /**

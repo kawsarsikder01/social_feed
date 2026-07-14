@@ -30,15 +30,20 @@ class PostLiked implements ShouldBroadcast
         return 'PostLiked';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
+        $freshPost = $this->post->fresh();
+
         return [
             'post_id' => $this->post->id,
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
             ],
-            'like_count' => $this->post->fresh()->like_count,
+            'like_count' => $freshPost->like_count ?? $this->post->like_count,
             'liked_by_user_id' => $this->user->id,
         ];
     }

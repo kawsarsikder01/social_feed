@@ -16,6 +16,11 @@ class PostObserver
         $this->postService->clearUserCache($post->user_id);
     }
 
+    public function updated(Post $post): void
+    {
+        $this->postService->clearUserCache($post->user_id);
+    }
+
     public function deleted(Post $post): void
     {
         $this->postService->clearUserCache($post->user_id);

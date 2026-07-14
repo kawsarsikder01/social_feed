@@ -39,7 +39,7 @@ return [
                 'cluster' => env('PUSHER_APP_CLUSTER', 'us2'),
                 'useTLS' => true,
             ],
-            'allowed_origins' => ['*'],
+            'allowed_origins' => [env('APP_URL', '')],
         ],
 
         'ably' => [

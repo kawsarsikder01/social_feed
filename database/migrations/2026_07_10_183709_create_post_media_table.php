@@ -26,17 +26,17 @@ return new class extends Migration
             $table->unsignedInteger('height')->nullable();
             $table->string('mime_type', 100);
             $table->unsignedBigInteger('file_size');
-            $table->unsignedInteger('duration')->nullable(); 
+            $table->unsignedInteger('duration')->nullable();
 
             $table->unsignedSmallInteger('position')->default(0);
 
             $table->timestampTz('created_at')->useCurrent();
         });
 
-        DB::statement("
+        DB::statement('
             CREATE INDEX post_media_post_idx
             ON post_media(post_id, position)
-        ");
+        ');
     }
 
     /**

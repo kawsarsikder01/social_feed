@@ -4,8 +4,6 @@ namespace App\Providers;
 
 use App\Models\Post;
 use App\Observers\PostObserver;
-use App\Repositories\Contracts\PostRepositoryInterface;
-use App\Repositories\PostRepository;
 use App\Services\PostService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -17,7 +15,6 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(PostRepositoryInterface::class, PostRepository::class);
         $this->app->singleton(PostService::class, fn () => new PostService);
     }
 
@@ -35,14 +32,9 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
+        Password::defaults(fn (): Password => Password::min(8)
+            ->letters()
+            ->numbers()
         );
     }
 

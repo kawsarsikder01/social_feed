@@ -5,25 +5,34 @@ namespace App\Actions\Posts;
 use App\Events\PostLiked;
 use App\Models\Post;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class TogglePostLikeAction
 {
     public function execute(Post $post, User $user): bool
     {
-        $isLiked = $post->likes()->where('user_id', $user->id)->exists();
+        return DB::transaction(function () use ($post, $user) {
+            $post = Post::query()
+                ->lockForUpdate()
+                ->findOrFail($post->id);
 
-        if ($isLiked) {
-            $post->likes()->detach($user->id);
-            $post->decrement('like_count');
+            $isLiked = $post->likes()
+                ->where('user_id', $user->id)
+                ->exists();
 
-            return false;
-        }
+            if ($isLiked) {
+                $post->likes()->detach($user->id);
+                $post->decrement('like_count', 1);
 
-        $post->likes()->attach($user->id);
-        $post->increment('like_count');
+                return false;
+            }
 
-        event(new PostLiked($post, $user));
+            $post->likes()->attach($user->id);
+            $post->increment('like_count', 1);
 
-        return true;
+            event(new PostLiked($post, $user));
+
+            return true;
+        });
     }
 }

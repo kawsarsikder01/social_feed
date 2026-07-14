@@ -9,15 +9,16 @@ use App\DTOs\CreatePostData;
 use App\Http\Requests\CreatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    public function store(CreatePostRequest $request)
+    public function store(CreatePostRequest $request): RedirectResponse
     {
         $data = CreatePostData::fromRequest(
             $request->validated(),
-            Auth::id(),
+            (int) Auth::id(),
         );
 
         if ($data->isEmpty()) {
@@ -33,6 +34,7 @@ class PostController extends Controller
 
     public function destroy(Post $post): JsonResponse
     {
+        $this->authorize('delete', $post);
 
         app(DeletePostAction::class)->execute($post);
 
@@ -43,6 +45,7 @@ class PostController extends Controller
 
     public function toggleLike(Post $post): JsonResponse
     {
+        abort_unless($post->isVisibleToUser(Auth::user()), 403);
 
         $liked = app(TogglePostLikeAction::class)
             ->execute($post, Auth::user());

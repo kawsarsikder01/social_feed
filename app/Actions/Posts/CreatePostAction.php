@@ -29,34 +29,42 @@ class CreatePostAction
             if (! empty($data->images)) {
                 foreach ($data->images as $file) {
                     $path = $file->store('posts', 'public');
-                    PostMedia::create([
-                        'post_id' => $post->id,
-                        'file_path' => Storage::url($path),
-                        'media_type' => 'image',
-                        'mime_type' => $file->getMimeType(),
-                        'file_size' => $file->getSize(),
-                        'position' => $position++,
-                    ]);
+
+                    if (is_string($path)) {
+                        PostMedia::create([
+                            'post_id' => $post->id,
+                            'file_path' => Storage::url($path),
+                            'media_type' => 'image',
+                            'mime_type' => $file->getMimeType(),
+                            'file_size' => $file->getSize(),
+                            'position' => $position++,
+                        ]);
+                    }
                 }
             }
 
             if (! empty($data->videos)) {
                 foreach ($data->videos as $file) {
                     $path = $file->store('posts', 'public');
-                    PostMedia::create([
-                        'post_id' => $post->id,
-                        'file_path' => Storage::url($path),
-                        'media_type' => 'video',
-                        'mime_type' => $file->getMimeType(),
-                        'file_size' => $file->getSize(),
-                        'position' => $position++,
-                    ]);
+
+                    if (is_string($path)) {
+                        PostMedia::create([
+                            'post_id' => $post->id,
+                            'file_path' => Storage::url($path),
+                            'media_type' => 'video',
+                            'mime_type' => $file->getMimeType(),
+                            'file_size' => $file->getSize(),
+                            'position' => $position++,
+                        ]);
+                    }
                 }
             }
 
-            PostCreated::dispatch($post);
+            $post->load(['user', 'media']);
 
-            return $post->load(['user', 'media']);
+            DB::afterCommit(fn () => PostCreated::dispatch($post));
+
+            return $post;
         });
     }
 }

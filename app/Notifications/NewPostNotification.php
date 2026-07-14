@@ -16,6 +16,9 @@ class NewPostNotification extends Notification implements ShouldQueue
         public readonly Post $post,
     ) {}
 
+    /**
+     * @return list<string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];
@@ -28,7 +31,7 @@ class NewPostNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("New post from {$authorName}")
             ->line("A new post was shared by {$authorName}.")
-            ->action('View Post', url('/'))
+            ->action('View Post', url("/{$this->post->public_id}"))
             ->line('Thank you for using our application!');
     }
 }

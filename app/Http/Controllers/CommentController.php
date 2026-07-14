@@ -15,19 +15,27 @@ use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
+    private function authorizePostVisibility(Post $post): void
+    {
+        abort_unless($post->isVisibleToUser(Auth::user()), 403);
+    }
+
     public function index(Post $post, CommentService $commentService): JsonResponse
     {
+        $this->authorizePostVisibility($post);
+
         return response()->json(
-            $commentService->getTopLevelComments($post, Auth::id()),
+            $commentService->getTopLevelComments($post, (int) Auth::id()),
         );
     }
 
     public function store(CreateCommentRequest $request, Post $post): JsonResponse
     {
+        $this->authorizePostVisibility($post);
 
         $data = CreateCommentData::fromRequest(
             $request->validated(),
-            Auth::id(),
+            (int) Auth::id(),
             $post->id,
         );
 
@@ -46,15 +54,17 @@ class CommentController extends Controller
 
     public function replies(Comment $comment, CommentService $commentService): JsonResponse
     {
+        $this->authorizePostVisibility($comment->post);
+
         return response()->json(
-            $commentService->getReplies($comment, Auth::id()),
+            $commentService->getReplies($comment, (int) Auth::id()),
         );
     }
 
     public function destroy(Comment $comment): JsonResponse
     {
-
-        abort_unless($comment->user_id === Auth::id(), 403);
+        $this->authorizePostVisibility($comment->post);
+        $this->authorize('delete', $comment);
 
         $result = app(DeleteCommentAction::class)->execute($comment);
 
@@ -66,6 +76,7 @@ class CommentController extends Controller
 
     public function toggleLike(Comment $comment): JsonResponse
     {
+        $this->authorizePostVisibility($comment->post);
 
         $liked = app(ToggleCommentLikeAction::class)
             ->execute($comment, Auth::user());

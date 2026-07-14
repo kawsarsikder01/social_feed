@@ -1,10 +1,10 @@
 import { createInertiaApp } from '@inertiajs/react';
-import { initializeTheme } from '@/hooks/use-appearance';
-import AuthLayout from '@/layouts/auth-layout';
-import AppLayout from './layouts/app-layout';
+import { configureEcho } from '@laravel/echo-react';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import { configureEcho } from '@laravel/echo-react';
+import { initializeTheme } from '@/hooks/use-appearance';
+import AppLayout from '@/layouts/app-layout';
+import AuthLayout from '@/layouts/auth-layout';
 
 configureEcho({
     broadcaster: 'pusher',

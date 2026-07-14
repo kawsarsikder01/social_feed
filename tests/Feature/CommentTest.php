@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\CommentCreated;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
@@ -73,6 +74,37 @@ it('can reply to a comment', function () {
 
     $parentComment->refresh();
     $this->assertEquals(1, $parentComment->reply_count);
+});
+
+it('cannot create a comment on a private post that the user does not own', function () {
+    $user = User::factory()->create(['status' => 'active']);
+    $otherUser = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create([
+        'visibility' => 'private',
+        'user_id' => $otherUser->id,
+    ]);
+    $this->actingAs($user);
+
+    $response = $this->postJson("/posts/{$post->public_id}/comments", [
+        'content' => 'This should not be allowed',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+it('cannot view replies on a private post that the user does not own', function () {
+    $user = User::factory()->create(['status' => 'active']);
+    $otherUser = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create([
+        'visibility' => 'private',
+        'user_id' => $otherUser->id,
+    ]);
+    $comment = Comment::factory()->create(['post_id' => $post->id, 'user_id' => $otherUser->id]);
+    $this->actingAs($user);
+
+    $response = $this->getJson("/comments/{$comment->id}/replies");
+
+    $response->assertStatus(403);
 });
 
 it('can delete own comment', function () {
@@ -152,6 +184,23 @@ it('cannot delete other users comment', function () {
     $response = $this->deleteJson("/comments/{$comment->id}");
 
     $response->assertStatus(403);
+});
+
+it('does not include user emails in comment created broadcast payload', function () {
+    $user = User::factory()->create(['status' => 'active']);
+    $replyToUser = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create(['visibility' => 'public']);
+    $comment = Comment::factory()->create([
+        'post_id' => $post->id,
+        'user_id' => $user->id,
+        'reply_to_user_id' => $replyToUser->id,
+    ]);
+
+    $event = new CommentCreated($comment);
+    $payload = $event->broadcastWith();
+
+    expect($payload['comment']['user'])->not->toHaveKey('email')
+        ->and($payload['comment']['reply_to_user'])->not->toHaveKey('email');
 });
 
 it('can toggle like on comment', function () {

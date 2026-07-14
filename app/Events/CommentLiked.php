@@ -31,15 +31,20 @@ class CommentLiked implements ShouldBroadcast
         return 'CommentLiked';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
+        $freshComment = $this->comment->fresh();
+
         return [
             'comment_id' => $this->comment->id,
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
             ],
-            'like_count' => $this->comment->fresh()->like_count,
+            'like_count' => $freshComment->like_count ?? $this->comment->like_count,
             'liked_by_user_id' => $this->user->id,
             'liked' => $this->liked,
         ];

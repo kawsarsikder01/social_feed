@@ -1,9 +1,9 @@
 import { usePage, router } from '@inertiajs/react';
-import Stories from '@/components/Stories';
-import PostForm from '@/components/PostForm';
-import Post from '@/components/Post';
-import PostSkeleton from '@/components/PostSkeleton';
 import { useState, useCallback, useEffect, useRef } from 'react';
+import Post from '@/components/Post';
+import PostForm from '@/components/PostForm';
+import PostSkeleton from '@/components/PostSkeleton';
+import Stories from '@/components/Stories';
 
 interface PostData {
     id: number;
@@ -93,22 +93,25 @@ export default function Feed() {
     const { posts: initialPosts } = usePage<{ posts: PaginatedPosts }>().props;
     const [posts, setPosts] = useState<PostData[]>(initialPosts?.data || []);
     const [loading, setLoading] = useState(false);
-    const [initialLoading, setInitialLoading] = useState(!initialPosts?.data);
     const [hasMore, setHasMore] = useState(initialPosts?.next_cursor !== null);
     const [nextCursor, setNextCursor] = useState<string | null>(initialPosts?.next_cursor ?? null);
     const sentinelRef = useRef<HTMLDivElement>(null);
+    const lastInitialPostsRef = useRef(initialPosts?.data);
 
+    // Sync server props to local state when Inertia re-renders with fresh data
     useEffect(() => {
-        if (initialPosts?.data) {
+        if (initialPosts?.data && initialPosts.data !== lastInitialPostsRef.current) {
+            lastInitialPostsRef.current = initialPosts.data;
             setPosts(initialPosts.data);
             setHasMore(initialPosts.next_cursor !== null);
             setNextCursor(initialPosts.next_cursor);
-            setInitialLoading(false);
         }
     }, [initialPosts]);
 
     const loadMore = useCallback(() => {
-        if (loading || !hasMore || !nextCursor) return;
+        if (loading || !hasMore || !nextCursor) {
+            return;
+        }
 
         setLoading(true);
 
@@ -136,11 +139,15 @@ export default function Feed() {
     // Intersection Observer for infinite scroll
     useEffect(() => {
         const sentinel = sentinelRef.current;
-        if (!sentinel) return;
+
+        if (!sentinel) {
+            return;
+        }
 
         const observer = new IntersectionObserver(
             (entries) => {
                 const first = entries[0];
+
                 if (first.isIntersecting && hasMore && !loading) {
                     loadMore();
                 }
@@ -158,7 +165,7 @@ export default function Feed() {
     }, [loadMore, hasMore, loading]);
 
     // Show skeleton on initial load (no server data yet)
-    if (initialLoading) {
+    if (!initialPosts?.data) {
         return (
             <div className="_layout_middle_wrap">
                 <div className="_layout_middle_inner">

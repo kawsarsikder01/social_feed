@@ -31,36 +31,36 @@ return new class extends Migration
             $table->softDeletesTz();
         });
 
-        # Content length constraint
-        DB::statement("
+        // Content length constraint
+        DB::statement('
             ALTER TABLE comments
             ADD CONSTRAINT comments_content_len
             CHECK (
                 char_length(content) > 0
                 AND char_length(content) <= 2000
             )
-        ");
+        ');
 
-        # Top-level comments
-        DB::statement("
+        // Top-level comments
+        DB::statement('
             CREATE INDEX comments_post_top_level_idx
             ON comments(post_id, created_at)
             WHERE parent_comment_id IS NULL
             AND deleted_at IS NULL
-        ");
+        ');
 
-        # Replies
-        DB::statement("
+        // Replies
+        DB::statement('
             CREATE INDEX comments_parent_idx
             ON comments(parent_comment_id, created_at)
             WHERE deleted_at IS NULL
-        ");
+        ');
 
-        # User comments
-        DB::statement("
+        // User comments
+        DB::statement('
             CREATE INDEX comments_user_idx
             ON comments(user_id)
-        ");
+        ');
     }
 
     /**

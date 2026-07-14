@@ -1,4 +1,5 @@
-import { AvatarPerson, getInitial, getAvatarColor } from '@/types';
+import type { AvatarPerson} from '@/types';
+import { getInitial, getAvatarColor } from '@/types';
 
 interface AvatarProps {
   author: AvatarPerson | null;

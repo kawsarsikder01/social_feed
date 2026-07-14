@@ -19,14 +19,14 @@ return new class extends Migration
 
             $table->timestampTz('created_at')->useCurrent();
 
-            # Composite Primary Key
+            // Composite Primary Key
             $table->primary(['comment_id', 'user_id']);
         });
 
-        DB::statement("
+        DB::statement('
             CREATE INDEX comment_likes_user_idx
             ON comment_likes(user_id, created_at DESC)
-        ");
+        ');
     }
 
     /**

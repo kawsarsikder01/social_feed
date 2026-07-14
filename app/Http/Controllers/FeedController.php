@@ -15,7 +15,7 @@ class FeedController extends Controller
 
     public function index(): Response
     {
-        $userId = Auth::id();
+        $userId = (int) Auth::id();
         $posts = $this->postService->getFeed($userId);
 
         return Inertia::render('feed', [

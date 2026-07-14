@@ -1,7 +1,7 @@
+import { Form } from "@inertiajs/react";
+import { store } from '@/routes/login';
 import FormInput from "./FormInput";
 import RememberForgotRow from "./RememberForgotRow";
-import { store } from '@/routes/login';
-import { Form, usePage } from "@inertiajs/react";
 
 
 

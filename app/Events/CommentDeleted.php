@@ -14,6 +14,7 @@ class CommentDeleted implements ShouldBroadcast
 
     public function __construct(
         public readonly Comment $comment,
+        /** @var list<int> */
         public readonly array $deletedCommentIds,
         public readonly int $postCommentCount,
     ) {}
@@ -30,6 +31,9 @@ class CommentDeleted implements ShouldBroadcast
         return 'CommentDeleted';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
         return [

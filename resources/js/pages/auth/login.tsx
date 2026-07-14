@@ -1,8 +1,8 @@
 import { Head } from '@inertiajs/react';
-import { register } from '@/routes';
-import LoginForm from '@/components/LoginForm';
-import GoogleSignInButton from '@/components/GoogleSignInButton';
 import { Link } from '@inertiajs/react';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
+import LoginForm from '@/components/LoginForm';
+import { register } from '@/routes';
 
 
 export default function Login() {

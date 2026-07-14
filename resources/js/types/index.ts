@@ -21,44 +21,6 @@ export interface AvatarPerson {
   email?: string;
 }
 
-export interface Reply {
-  id: string;
-  comment_id: string;
-  postId: string;
-  author: Author | null;
-  text: string;
-  createdAt: string;
-  updatedAt: string;
-  likeCount: number;
-  viewerHasLiked: boolean;
-}
-
-export interface Comment {
-  id: string;
-  post_id: string;
-  author: Author | null;
-  text: string;
-  created_at: string;
-  updated_at: string;
-  likeCount: number;
-  viewerHasLiked: boolean;
-  replies: Reply[];
-}
-
-export interface Post {
-  id: string;
-  author: Author | null;
-  text: string;
-  imageUrl: string | null;
-  visibility: 'public' | 'private';
-  createdAt: string;
-  updatedAt: string;
-  likeCount: number;
-  viewerHasLiked: boolean;
-  likedBy: Author[];
-  comments: Comment[];
-}
-
 /** Converts a date string to a human-readable "time ago" format */
 export function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -71,19 +33,38 @@ export function timeAgo(dateStr: string): string {
   const diffWeek = Math.floor(diffDay / 7);
   const diffMonth = Math.floor(diffDay / 30);
 
-  if (diffSec < 60) return 'just now';
-  if (diffMin < 60) return `${diffMin}m`;
-  if (diffHr < 24) return `${diffHr}h`;
-  if (diffDay < 7) return `${diffDay}d`;
-  if (diffWeek < 5) return `${diffWeek}w`;
+  if (diffSec < 60) {
+    return 'just now';
+  }
+
+  if (diffMin < 60) {
+    return `${diffMin}m`;
+  }
+
+  if (diffHr < 24) {
+    return `${diffHr}h`;
+  }
+
+  if (diffDay < 7) {
+    return `${diffDay}d`;
+  }
+
+  if (diffWeek < 5) {
+    return `${diffWeek}w`;
+  }
+
   return `${diffMonth}mo`;
 }
 
 /** Gets the avatar initial from a person */
 export function getInitial(person: AvatarPerson | null): string {
-  if (!person) return '?';
+  if (!person) {
+    return '?';
+  }
+
   const name = person.name ?? `${person.first_name ?? ''} ${person.last_name ?? ''}`.trim();
   const source = name || person.email || '';
+
   return (source[0] ?? '?').toUpperCase();
 }
 
@@ -95,11 +76,11 @@ const AVATAR_COLORS = [
 ];
 
 export function getAvatarColor(person: AvatarPerson | null): string {
-  if (!person) return AVATAR_COLORS[0];
-  const code = String(person.id).split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-  return AVATAR_COLORS[code % AVATAR_COLORS.length];
-}
+  if (!person) {
+    return AVATAR_COLORS[0];
+  }
 
-export interface Auth {
-    auth: Author;
+  const code = String(person.id).split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+
+  return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }

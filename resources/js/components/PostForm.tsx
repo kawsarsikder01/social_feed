@@ -1,7 +1,7 @@
 import { usePage, useForm } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
+import type { Auth } from '@/types/auth';
 import Avatar from './Avatar';
-import { Auth } from '@/types';
-import { useRef, useState } from 'react';
 
 export default function PostForm() {
     const { auth } = usePage<{ auth: Auth }>().props;
@@ -18,8 +18,20 @@ export default function PostForm() {
     const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
 
+    useEffect(() => {
+        return () => {
+            imagesPreview.forEach(URL.revokeObjectURL);
+
+            if (videoPreview) {
+                URL.revokeObjectURL(videoPreview);
+            }
+        };
+    }, [imagesPreview, videoPreview]);
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
+            imagesPreview.forEach(URL.revokeObjectURL);
+
             const files = Array.from(e.target.files);
             setImagesPreview(files.map(f => URL.createObjectURL(f)));
             setData('images', files);
@@ -28,6 +40,10 @@ export default function PostForm() {
 
     const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
+            if (videoPreview) {
+                URL.revokeObjectURL(videoPreview);
+            }
+
             const file = e.target.files[0];
             setVideoPreview(URL.createObjectURL(file));
             setData('videos', [file]);
@@ -35,12 +51,24 @@ export default function PostForm() {
     };
 
     const clearMedia = () => {
+        imagesPreview.forEach(URL.revokeObjectURL);
+
+        if (videoPreview) {
+            URL.revokeObjectURL(videoPreview);
+        }
+
         setImagesPreview([]);
         setVideoPreview(null);
         setData('images', []);
         setData('videos', []);
-        if (imageInputRef.current) imageInputRef.current.value = '';
-        if (videoInputRef.current) videoInputRef.current.value = '';
+
+        if (imageInputRef.current) {
+            imageInputRef.current.value = '';
+        }
+
+        if (videoInputRef.current) {
+            videoInputRef.current.value = '';
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -77,9 +105,11 @@ export default function PostForm() {
                 style={{ display: 'none' }}
             />
 
-            {typeof errors === 'string' && (
+            {Object.keys(errors).length > 0 && (
                 <div className="alert alert-danger" style={{ marginBottom: 12, padding: '8px 12px', background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4, color: '#ff4d4f' }}>
-                    {errors}
+                    {Object.values(errors).map((err, i) => (
+                        <div key={i}>{err}</div>
+                    ))}
                 </div>
             )}
 
@@ -167,6 +197,7 @@ export default function PostForm() {
                         value={data.visibility}
                         onChange={e => setData('visibility', e.target.value)}
                         name="visibility"
+                        aria-label="Post visibility"
                         className="form-select form-select-sm"
                         style={{
                             width: 'auto',
