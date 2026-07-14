@@ -449,7 +449,7 @@ export default function Post({ post }: PostProps) {
             if (comment.parent_comment_id) {
                 return prev.map(c =>
                     c.id === comment.parent_comment_id
-                        ? { ...c, replies: [...(c.replies || []), comment as Reply], reply_count: c.reply_count + 1 }
+                        ? { ...c, replies: [...(c.replies || []), comment as unknown as Reply], reply_count: c.reply_count + 1 }
                         : c
                 );
             }

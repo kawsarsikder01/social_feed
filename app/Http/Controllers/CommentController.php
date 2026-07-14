@@ -10,14 +10,12 @@ use App\Http\Requests\CreateCommentRequest;
 use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth; 
 
 class CommentController extends Controller
 {
     public function store(CreateCommentRequest $request, Post $post): JsonResponse
     {
-        Gate::authorize('create', Comment::class);
 
         $data = CreateCommentData::fromRequest(
             $request->validated(),
@@ -35,7 +33,6 @@ class CommentController extends Controller
 
     public function destroy(Comment $comment): JsonResponse
     {
-        Gate::authorize('delete', $comment);
 
         $post = $comment->post;
 
@@ -48,8 +45,7 @@ class CommentController extends Controller
     }
 
     public function toggleLike(Comment $comment): JsonResponse
-    {
-        Gate::authorize('like', $comment);
+    { 
 
         $liked = app(ToggleCommentLikeAction::class)
             ->execute($comment, Auth::user());

@@ -5,6 +5,7 @@ use App\Http\Controllers\FeedController;
 use App\Http\Controllers\PostController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 RateLimiter::for('api', function (Request $request) {

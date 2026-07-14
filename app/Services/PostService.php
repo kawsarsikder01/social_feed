@@ -68,7 +68,7 @@ class PostService
     public function getRecentPostsForUser(int $userId, int $limit = 10): array
     {
         return Cache::remember("user_recent_posts_{$userId}", 60, function () use ($userId, $limit) {
-            return Post::where('user_id', $userId)
+            return Post::query()->where('user_id', $userId)
                 ->with(['media:id,post_id,file_path,media_type,position'])
                 ->orderByDesc('created_at')
                 ->limit($limit)

@@ -9,15 +9,12 @@ use App\DTOs\CreatePostData;
 use App\Http\Requests\CreatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth; 
 
 class PostController extends Controller
 {
     public function store(CreatePostRequest $request)
     {
-        Gate::authorize('create', Post::class);
-
         $data = CreatePostData::fromRequest(
             $request->validated(),
             Auth::id(),
@@ -36,7 +33,6 @@ class PostController extends Controller
 
     public function destroy(Post $post): JsonResponse
     {
-        Gate::authorize('delete', $post);
 
         app(DeletePostAction::class)->execute($post);
 
@@ -47,7 +43,6 @@ class PostController extends Controller
 
     public function toggleLike(Post $post): JsonResponse
     {
-        Gate::authorize('like', $post);
 
         $liked = app(TogglePostLikeAction::class)
             ->execute($post, Auth::user());
