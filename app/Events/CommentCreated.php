@@ -57,11 +57,14 @@ class CommentCreated implements ShouldBroadcast
                 ] : null,
                 'like_count' => $this->comment->like_count,
                 'reply_count' => $this->comment->reply_count,
-                'likes' => [],
-                'replies' => [],
+                'liked_by_user' => false,
                 'parent_comment_id' => $this->comment->parent_comment_id,
                 'created_at' => $this->comment->created_at->toISOString(),
             ],
+            'post_comment_count' => $this->comment->post()->value('comment_count'),
+            'parent_reply_count' => $this->comment->parent_comment_id === null
+                ? null
+                : $this->comment->parent()->value('reply_count'),
         ];
     }
 }

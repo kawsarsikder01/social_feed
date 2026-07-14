@@ -12,57 +12,54 @@ class PostService
     public function getFeed(int $userId, int $perPage = 20): CursorPaginator
     {
         return Post::query()
+            ->select([
+                'id',
+                'public_id',
+                'user_id',
+                'content',
+                'visibility',
+                'like_count',
+                'comment_count',
+                'created_at',
+            ])
             ->where(function (Builder $query) use ($userId) {
                 $query->where('visibility', 'public')
                     ->orWhere('user_id', $userId);
             })
+            ->withExists([
+                'likes as liked_by_user' => fn (Builder $query) => $query->whereKey($userId),
+            ])
             ->with([
                 'user:id,public_id,first_name,last_name,avatar',
                 'media:id,post_id,file_path,media_type,width,height,position',
-                'likes:id',
-                'comments' => function ($query) {
-                    $query->whereNull('parent_comment_id')
-                        ->orderBy('created_at', 'desc')
-                        ->with([
-                            'user:id,public_id,first_name,last_name,avatar',
-                            'likes:id',
-                            'replies' => function ($query) {
-                                $query->with([
-                                    'user:id,public_id,first_name,last_name,avatar',
-                                    'likes:id',
-                                    'replyToUser:id,first_name,last_name',
-                                ]);
-                            },
-                        ]);
-                },
             ])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->cursorPaginate($perPage);
     }
 
-    public function getPostWithPublicId(string $publicId): ?Post
+    public function getPostWithPublicId(string $publicId, int $userId): ?Post
     {
-        return Post::with([
-            'user:id,public_id,first_name,last_name,avatar',
-            'media:id,post_id,file_path,media_type,width,height,position',
-            'likes:id',
-            'comments' => function ($query) {
-                $query->whereNull('parent_comment_id')
-                    ->orderBy('created_at', 'desc')
-                    ->with([
-                        'user:id,public_id,first_name,last_name,avatar',
-                        'likes:id',
-                        'replies' => function ($query) {
-                            $query->with([
-                                'user:id,public_id,first_name,last_name,avatar',
-                                'likes:id',
-                                'replyToUser:id,first_name',
-                            ]);
-                        },
-                    ]);
-            },
-        ])->where('public_id', $publicId)->first();
+        return Post::query()
+            ->select([
+                'id',
+                'public_id',
+                'user_id',
+                'content',
+                'visibility',
+                'like_count',
+                'comment_count',
+                'created_at',
+            ])
+            ->withExists([
+                'likes as liked_by_user' => fn (Builder $query) => $query->whereKey($userId),
+            ])
+            ->with([
+                'user:id,public_id,first_name,last_name,avatar',
+                'media:id,post_id,file_path,media_type,width,height,position',
+            ])
+            ->where('public_id', $publicId)
+            ->first();
     }
 
     public function getRecentPostsForUser(int $userId, int $limit = 10): array

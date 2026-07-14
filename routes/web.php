@@ -38,9 +38,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('posts.like');
 
     // Comments
+    Route::get('/posts/{post}/comments', [CommentController::class, 'index'])
+        ->name('comments.index');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware('throttle:comments')
         ->name('comments.store');
+    Route::get('/comments/{comment}/replies', [CommentController::class, 'replies'])
+        ->name('comments.replies');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/like', [CommentController::class, 'toggleLike'])
         ->middleware('throttle:likes')

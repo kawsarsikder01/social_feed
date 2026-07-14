@@ -4,6 +4,11 @@ import AuthLayout from '@/layouts/auth-layout';
 import AppLayout from './layouts/app-layout';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { configureEcho } from '@laravel/echo-react';
+
+configureEcho({
+    broadcaster: 'pusher',
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Buddy Script';
 

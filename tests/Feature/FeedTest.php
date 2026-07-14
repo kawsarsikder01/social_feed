@@ -2,6 +2,7 @@
 
 use App\Models\Post;
 use App\Models\User;
+use App\Services\PostService;
 
 uses()->group('feed');
 
@@ -62,6 +63,18 @@ it('eager loads relationships to prevent N+1', function () {
     $response = $this->get('/');
 
     $response->assertOk();
+});
+
+it('does not load comments or liker collections with feed posts', function () {
+    $viewer = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create(['visibility' => 'public']);
+    $post->likes()->attach($viewer->id);
+
+    $feedPost = app(PostService::class)->getFeed($viewer->id)->items()[0];
+
+    expect($feedPost->relationLoaded('comments'))->toBeFalse()
+        ->and($feedPost->relationLoaded('likes'))->toBeFalse()
+        ->and($feedPost->liked_by_user)->toBeTrue();
 });
 
 it('requires authentication for feed', function () {

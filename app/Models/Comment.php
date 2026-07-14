@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $reply_to_user_id
  * @property string $content
  * @property int $like_count
- * @property int $reply_count
+ * @property int $comment_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at

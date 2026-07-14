@@ -6,34 +6,45 @@ use App\DTOs\CreateCommentData;
 use App\Events\CommentCreated;
 use App\Models\Comment;
 use App\Models\Post;
+use Illuminate\Support\Facades\DB;
 
 class CreateCommentAction
 {
     public function execute(CreateCommentData $data, Post $post): Comment
     {
-        $replyToUserId = null;
+        $comment = DB::transaction(function () use ($data, $post) {
+            $replyToUserId = null;
 
-        if ($data->isReply()) {
-            $parent = Comment::findOrFail($data->parentCommentId);
-            $replyToUserId = $parent->user_id;
-        }
+            if ($data->isReply()) {
+                $parent = Comment::query()
+                    ->whereKey($data->parentCommentId)
+                    ->whereBelongsTo($post)
+                    ->whereNull('parent_comment_id')
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $comment = Comment::create([
-            'post_id' => $post->id,
-            'user_id' => $data->userId,
-            'content' => $data->content,
-            'parent_comment_id' => $data->parentCommentId,
-            'reply_to_user_id' => $replyToUserId,
-        ]);
+                $replyToUserId = $parent->user_id;
+                $parent->increment('reply_count');
+            }
 
-        $post->increment('comment_count');
+            $comment = Comment::create([
+                'post_id' => $post->id,
+                'user_id' => $data->userId,
+                'content' => $data->content,
+                'parent_comment_id' => $data->parentCommentId,
+                'reply_to_user_id' => $replyToUserId,
+            ]);
 
-        if ($comment->parent_comment_id) {
-            $comment->parent()->increment('reply_count');
-        }
+            $post->increment('comment_count');
+
+            return $comment;
+        });
 
         event(new CommentCreated($comment));
 
-        return $comment->load(['user', 'replyToUser']);
+        return $comment->load([
+            'user:id,public_id,first_name,last_name,avatar',
+            'replyToUser:id,public_id,first_name,last_name,avatar',
+        ]);
     }
 }

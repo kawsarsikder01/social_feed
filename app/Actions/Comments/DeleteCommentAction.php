@@ -8,26 +8,39 @@ use Illuminate\Support\Facades\DB;
 
 class DeleteCommentAction
 {
-    public function execute(Comment $comment): bool
+    /**
+     * @return array{deleted_comment_ids: list<int>, post_comment_count: int}
+     */
+    public function execute(Comment $comment): array
     {
-        $post = $comment->post;
-        $parentCommentId = $comment->parent_comment_id;
+        $result = DB::transaction(function () use ($comment) {
+            $post = $comment->post()->lockForUpdate()->firstOrFail();
 
-        $result = DB::transaction(function () use ($comment, $post, $parentCommentId) {
-            $result = $comment->delete();
+            $comments = Comment::query()
+                ->whereKey($comment->id)
+                ->orWhere('parent_comment_id', $comment->id)
+                ->lockForUpdate()
+                ->get(['id']);
 
-            $post->decrement('comment_count');
+            $deletedCommentIds = $comments->modelKeys();
 
-            if ($parentCommentId) {
-                Comment::where('id', $parentCommentId)->decrement('reply_count');
+            Comment::query()->whereKey($deletedCommentIds)->delete();
+
+            $post->decrement('comment_count', count($deletedCommentIds));
+
+            if ($comment->parent_comment_id !== null) {
+                Comment::query()
+                    ->whereKey($comment->parent_comment_id)
+                    ->decrement('reply_count');
             }
 
-            return $result;
+            return [
+                'deleted_comment_ids' => $deletedCommentIds,
+                'post_comment_count' => $post->fresh()->comment_count,
+            ];
         });
 
-        if ($result) {
-            event(new CommentDeleted($comment));
-        }
+        event(new CommentDeleted($comment, $result['deleted_comment_ids'], $result['post_comment_count']));
 
         return $result;
     }

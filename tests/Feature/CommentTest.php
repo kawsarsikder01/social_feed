@@ -19,7 +19,8 @@ it('can create a comment on a post', function () {
         ->assertJsonStructure([
             'message',
             'comment' => ['id', 'content'],
-        ]);
+        ])
+        ->assertJsonPath('comment.liked_by_user', false);
 
     $this->assertDatabaseHas('comments', [
         'post_id' => $post->id,
@@ -90,6 +91,52 @@ it('can delete own comment', function () {
         ->assertJson(['message' => 'Comment deleted successfully.']);
 
     $this->assertSoftDeleted('comments', ['id' => $comment->id]);
+});
+
+it('deletes a parent comment and its replies while updating the post comment count', function () {
+    $user = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create(['visibility' => 'public', 'comment_count' => 3]);
+    $parentComment = Comment::factory()->create([
+        'post_id' => $post->id,
+        'user_id' => $user->id,
+        'reply_count' => 2,
+    ]);
+    $firstReply = Comment::factory()->create([
+        'post_id' => $post->id,
+        'parent_comment_id' => $parentComment->id,
+    ]);
+    $secondReply = Comment::factory()->create([
+        'post_id' => $post->id,
+        'parent_comment_id' => $parentComment->id,
+    ]);
+    $this->actingAs($user);
+
+    $response = $this->deleteJson("/comments/{$parentComment->id}");
+
+    $response->assertOk()
+        ->assertJsonPath('post_comment_count', 0)
+        ->assertJsonCount(3, 'deleted_comment_ids');
+
+    $this->assertSoftDeleted('comments', ['id' => $parentComment->id]);
+    $this->assertSoftDeleted('comments', ['id' => $firstReply->id]);
+    $this->assertSoftDeleted('comments', ['id' => $secondReply->id]);
+    expect($post->fresh()->comment_count)->toBe(0);
+});
+
+it('loads top-level comments through cursor pagination without likes or replies', function () {
+    $user = User::factory()->create(['status' => 'active']);
+    $post = Post::factory()->create(['visibility' => 'public']);
+    $comment = Comment::factory()->create(['post_id' => $post->id]);
+    $comment->likes()->attach($user->id);
+    $this->actingAs($user);
+
+    $response = $this->getJson("/posts/{$post->public_id}/comments");
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.0.id', $comment->id)
+        ->assertJsonPath('data.0.liked_by_user', true)
+        ->assertJsonMissingPath('data.0.likes')
+        ->assertJsonMissingPath('data.0.replies');
 });
 
 it('cannot delete other users comment', function () {

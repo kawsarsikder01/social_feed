@@ -16,6 +16,7 @@ class CommentLiked implements ShouldBroadcast
     public function __construct(
         public readonly Comment $comment,
         public readonly User $user,
+        public readonly bool $liked,
     ) {}
 
     public function broadcastOn(): array
@@ -40,6 +41,7 @@ class CommentLiked implements ShouldBroadcast
             ],
             'like_count' => $this->comment->fresh()->like_count,
             'liked_by_user_id' => $this->user->id,
+            'liked' => $this->liked,
         ];
     }
 }

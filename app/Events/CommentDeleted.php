@@ -14,6 +14,8 @@ class CommentDeleted implements ShouldBroadcast
 
     public function __construct(
         public readonly Comment $comment,
+        public readonly array $deletedCommentIds,
+        public readonly int $postCommentCount,
     ) {}
 
     public function broadcastOn(): array
@@ -31,9 +33,9 @@ class CommentDeleted implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'comment_id' => $this->comment->id,
+            'comment_ids' => $this->deletedCommentIds,
             'parent_comment_id' => $this->comment->parent_comment_id,
-            'post_comment_count' => $this->comment->post->fresh()->comment_count,
+            'post_comment_count' => $this->postCommentCount,
         ];
     }
 }

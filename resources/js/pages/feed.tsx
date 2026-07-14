@@ -22,6 +22,7 @@ interface PostData {
     visibility: 'public' | 'private';
     like_count: number;
     comment_count: number;
+    liked_by_user: boolean;
     likes: { id: number }[];
     media: {
         id: number;
