@@ -10,11 +10,13 @@ use App\Http\Requests\CreatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class PostController extends Controller
 {
-    public function store(CreatePostRequest $request): RedirectResponse
+    public function store(CreatePostRequest $request): RedirectResponse|Response
     {
         $data = CreatePostData::fromRequest(
             $request->validated(),
@@ -29,7 +31,7 @@ class PostController extends Controller
 
         app(CreatePostAction::class)->execute($data);
 
-        return back();
+        return Inertia::location('/');
     }
 
     public function destroy(Post $post): JsonResponse

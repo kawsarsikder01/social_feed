@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/migrate', function () {
-   return Artisan::call('migrate', ['--force' => true]);
+    return Artisan::call('migrate', ['--force' => true]);
 })->name('health');
 
 RateLimiter::for('api', function (Request $request) {
@@ -37,6 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/posts', [PostController::class, 'store'])
         ->middleware('throttle:posts')
         ->name('posts.store');
+
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])
         ->middleware('throttle:posts')
         ->name('posts.destroy');

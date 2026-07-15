@@ -4,15 +4,15 @@ namespace App\Services;
 
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 
 class PostService
 {
     /**
-     * @return CursorPaginator<int, Post>
+     * @return LengthAwarePaginator<int, Post>
      */
-    public function getFeed(int $userId, int $perPage = 20): CursorPaginator
+    public function getFeed(int $userId, int $perPage = 10): LengthAwarePaginator
     {
         return Post::query()
             ->select([
@@ -38,7 +38,7 @@ class PostService
             ])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
-            ->cursorPaginate($perPage);
+            ->paginate($perPage);
     }
 
     /**
@@ -51,6 +51,7 @@ class PostService
                 ->with(['media:id,post_id,file_path,media_type,width,height,position'])
                 ->orderByDesc('created_at')
                 ->limit($limit)
+                
                 ->get()
                 ->toArray();
         });

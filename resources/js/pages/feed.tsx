@@ -1,4 +1,4 @@
-import { usePage, router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Post from '@/components/Post';
 import PostForm from '@/components/PostForm';
@@ -23,7 +23,6 @@ interface PostData {
     like_count: number;
     comment_count: number;
     liked_by_user: boolean;
-    likes: { id: number }[];
     media: {
         id: number;
         file_path: string;
@@ -32,59 +31,15 @@ interface PostData {
         height?: number;
         position: number;
     }[];
-    comments: {
-        id: number;
-        content: string;
-        user: {
-            id: number;
-            public_id: string;
-            first_name: string;
-            last_name: string;
-            name: string;
-            email: string;
-            avatar?: string;
-        } | null;
-        like_count: number;
-        reply_count: number;
-        likes: { id: number }[];
-        replies: {
-            id: number;
-            content: string;
-            user: {
-                id: number;
-                public_id: string;
-                first_name: string;
-                last_name: string;
-                name: string;
-                email: string;
-                avatar?: string;
-            } | null;
-            reply_to_user: {
-                id: number;
-                public_id: string;
-                first_name: string;
-                last_name: string;
-                name: string;
-                email: string;
-                avatar?: string;
-            } | null;
-            like_count: number;
-            likes: { id: number }[];
-            created_at: string;
-        }[];
-        created_at: string;
-    }[];
     created_at: string;
 }
 
 interface PaginatedPosts {
     data: PostData[];
-    path: string;
+    current_page: number;
+    last_page: number;
     per_page: number;
-    next_cursor: string | null;
-    next_cursor_url: string | null;
-    prev_cursor: string | null;
-    prev_cursor_url: string | null;
+    total: number;
 }
 
 const SKELETON_COUNT = 3;
@@ -93,31 +48,43 @@ export default function Feed() {
     const { posts: initialPosts } = usePage<{ posts: PaginatedPosts }>().props;
     const [posts, setPosts] = useState<PostData[]>(initialPosts?.data || []);
     const [loading, setLoading] = useState(false);
-    const [hasMore, setHasMore] = useState(initialPosts?.next_cursor !== null);
-    const [nextCursor, setNextCursor] = useState<string | null>(initialPosts?.next_cursor ?? null);
+    const [hasMore, setHasMore] = useState(
+        initialPosts ? initialPosts.current_page < initialPosts.last_page : false
+    );
+    const [nextPage, setNextPage] = useState<number | null>(
+        initialPosts && initialPosts.current_page < initialPosts.last_page
+            ? initialPosts.current_page + 1
+            : null
+    );
     const sentinelRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const loadingRef = useRef(false);
     const lastInitialPostsRef = useRef(initialPosts?.data);
 
-    // Sync server props to local state when Inertia re-renders with fresh data
     useEffect(() => {
         if (initialPosts?.data && initialPosts.data !== lastInitialPostsRef.current) {
             lastInitialPostsRef.current = initialPosts.data;
             setPosts(initialPosts.data);
-            setHasMore(initialPosts.next_cursor !== null);
-            setNextCursor(initialPosts.next_cursor);
+            setHasMore(initialPosts.current_page < initialPosts.last_page);
+            setNextPage(
+                initialPosts.current_page < initialPosts.last_page
+                    ? initialPosts.current_page + 1
+                    : null
+            );
         }
     }, [initialPosts]);
 
     const loadMore = useCallback(() => {
-        if (loading || !hasMore || !nextCursor) {
+        if (loadingRef.current || !hasMore || !nextPage) {
             return;
         }
 
+        loadingRef.current = true;
         setLoading(true);
 
         router.get(
             '/',
-            { cursor: nextCursor },
+            { page: nextPage },
             {
                 preserveState: true,
                 preserveScroll: true,
@@ -125,36 +92,37 @@ export default function Feed() {
                 onSuccess: (page) => {
                     const paginatedPosts = page.props.posts as PaginatedPosts;
                     setPosts((prev) => [...prev, ...paginatedPosts.data]);
-                    setHasMore(paginatedPosts.next_cursor !== null);
-                    setNextCursor(paginatedPosts.next_cursor);
+                    const newNextPage = paginatedPosts.current_page < paginatedPosts.last_page
+                        ? paginatedPosts.current_page + 1
+                        : null;
+                    setHasMore(newNextPage !== null);
+                    setNextPage(newNextPage);
                     setLoading(false);
+                    loadingRef.current = false;
                 },
                 onError: () => {
                     setLoading(false);
+                    loadingRef.current = false;
                 },
             }
         );
-    }, [loading, hasMore, nextCursor]);
+    }, [hasMore, nextPage]);
 
-    // Intersection Observer for infinite scroll
     useEffect(() => {
         const sentinel = sentinelRef.current;
+        const container = scrollContainerRef.current;
 
-        if (!sentinel) {
+        if (!sentinel || !container) {
             return;
         }
 
         const observer = new IntersectionObserver(
             (entries) => {
-                const first = entries[0];
-
-                if (first.isIntersecting && hasMore && !loading) {
+                if (entries[0]?.isIntersecting) {
                     loadMore();
                 }
             },
-            {
-                rootMargin: '200px',
-            }
+            { root: container, rootMargin: '200px' }
         );
 
         observer.observe(sentinel);
@@ -162,9 +130,8 @@ export default function Feed() {
         return () => {
             observer.disconnect();
         };
-    }, [loadMore, hasMore, loading]);
+    }, [loadMore]);
 
-    // Show skeleton on initial load (no server data yet)
     if (!initialPosts?.data) {
         return (
             <div className="_layout_middle_wrap">
@@ -180,7 +147,7 @@ export default function Feed() {
     }
 
     return (
-        <div className="_layout_middle_wrap">
+        <div className="_layout_middle_wrap" ref={scrollContainerRef}>
             <div className="_layout_middle_inner">
                 <Stories />
                 <PostForm />
@@ -190,7 +157,6 @@ export default function Feed() {
                             <Post key={post.id} post={post} />
                         ))}
 
-                        {/* Loading more skeletons */}
                         {loading && (
                             <>
                                 {Array.from({ length: 2 }).map((_, i) => (
@@ -199,7 +165,6 @@ export default function Feed() {
                             </>
                         )}
 
-                        {/* Sentinel element for Intersection Observer */}
                         {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
                     </>
                 ) : (
